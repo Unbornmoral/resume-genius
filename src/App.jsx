@@ -140,7 +140,7 @@ const handleGenerateSummary = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-indigo-500 to-blue-500 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-r from-gray-500 to-teal-100 flex items-center justify-center p-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-6xl">
         
         {/* Left side: Forms */}
@@ -422,7 +422,13 @@ const handleGenerateSummary = () => {
             ))}
           </div>
 
-
+          {/* Print / Export */}
+            <button
+              onClick={() => window.print()}
+              className="mt-6 px-4 py-2 bg-primary text-primary-foreground rounded"
+            >
+              Print / Save as PDF
+            </button>
 
         </div> {/* ✅ Right column closes here */}
 
@@ -430,5 +436,7 @@ const handleGenerateSummary = () => {
     </div>
   );
 }
+
+
 
 export default App;

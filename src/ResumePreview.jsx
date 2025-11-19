@@ -33,4 +33,5 @@ function ResumePreview({ personalInfo, education }) {
   );
 }
 
+
 export default ResumePreview;

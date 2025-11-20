@@ -94,39 +94,23 @@ const handleSkillChange = (index, value) => {
 };
 
 {/*AI section*/}
-const generateSummaryDraft = (personalInfo, experience, skills, tone = "default") => {
-  const name = personalInfo.name?.trim();
-  const firstRole = experience[0]?.role?.trim();
-  const firstCompany = experience[0]?.company?.trim();
+const generateSummaryAI = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: `Write a confident resume summary for a ${experience[0].role} skilled in ${skills.join(", ")}`
+      }),
+    });
 
-  const roleLine = (firstRole && firstCompany)
-    ? `${firstRole} at ${firstCompany}`
-    : firstRole || "";
-
-  const skillsList = (skills || [])
-    .filter(s => s && s.trim().length > 0)
-    .slice(0, 6)
-    .join(", ");
-
-  let base = `Results-driven professional`;
-  if (roleLine) base += ` with experience as ${roleLine}`;
-  if (skillsList) base += `. Skilled in ${skillsList}.`;
-
-  base += ` Focused on delivering measurable impact, improving processes, and collaborating across teams.`;
-
-  // Tone variations
-  if (tone === "concise") {
-    return `Professional with experience in ${roleLine}. Skilled in ${skillsList}.`;
+    const data = await res.json();
+    setSummary(data.text); // update the summary state
+  } catch (err) {
+    console.error("Error calling AI:", err);
   }
-  if (tone === "confident") {
-    return `Accomplished ${roleLine}, recognized for expertise in ${skillsList}. Driving success with confidence and impact.`;
-  }
-  if (tone === "friendly") {
-    return `Passionate ${roleLine}, eager to contribute skills in ${skillsList}. Thrives in teamwork and positive collaboration.`;
-  }
-
-  return base;
 };
+
 
 const handleGenerateSummary = () => {
   setSummaryLoading(true);
@@ -140,11 +124,11 @@ const handleGenerateSummary = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-gray-500 to-teal-100 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-r from-gray-500 to-teal-100 flex items-center justify-center p-6 font-serif">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-6xl">
         
         {/* Left side: Forms */}
-        <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
+        <div className="bg-gradient-to-r from-gray-500 to-teal-100 rounded-lg shadow-lg p-6 space-y-6">
           <h2 className="text-xl font-bold mb-4">Personal Info</h2>
           <input
             type="text"
@@ -191,27 +175,17 @@ const handleGenerateSummary = () => {
             onChange={(e) => setSummary(e.target.value)}
             className="w-full border p-2 rounded h-24"
           />
-          
+
           <div className="flex items-center gap-2 mt-2">
             <button
-              onClick={() => setSummary(generateSummaryDraft(personalInfo, experience, skills, "concise"))}
-              className="px-3 py-1 bg-gray-200 rounded"
+              onClick={generateSummaryAI}
+              className="px-3 py-1 bg-gray-600 text-white rounded"
             >
-              Concise
-            </button>
-            <button
-              onClick={() => setSummary(generateSummaryDraft(personalInfo, experience, skills, "confident"))}
-              className="px-3 py-1 bg-gray-200 rounded"
-            >
-              Confident
-            </button>
-            <button
-              onClick={() => setSummary(generateSummaryDraft(personalInfo, experience, skills, "friendly"))}
-              className="px-3 py-1 bg-gray-200 rounded"
-            >
-              Friendly
+              Generate with AI
             </button>
           </div>
+
+
 
 
 
@@ -249,7 +223,7 @@ const handleGenerateSummary = () => {
               />
               <button
                 onClick={() => removeEducation(index)}
-                className="mt-2 px-3 py-1 bg-red-500 text-white rounded"
+                className="mt-2 px-3 py-1 bg-gray-600 text-white rounded"
               >
                 Remove
               </button>
@@ -257,7 +231,7 @@ const handleGenerateSummary = () => {
           ))}
           <button
             onClick={addEducation}
-            className="mt-2 px-4 py-2 bg-indigo-500 text-white rounded"
+            className="mt-2 px-4 py-2 bg-gray-600 text-white rounded"
           >
             + Add Education
           </button>
@@ -312,7 +286,7 @@ const handleGenerateSummary = () => {
               />
               <button
                 onClick={() => removeExperience(index)}
-                className="mt-2 px-3 py-1 bg-red-500 text-white rounded"
+                className="mt-2 px-3 py-1 bg-gray-600 text-white rounded"
               >
                 Remove
               </button>
@@ -320,7 +294,7 @@ const handleGenerateSummary = () => {
           ))}
           <button
             onClick={addExperience}
-            className="mt-2 px-4 py-2 bg-indigo-500 text-white rounded"
+            className="mt-2 px-4 py-2 bg-gray-600 text-white rounded"
           >
             + Add Experience
           </button>
@@ -350,7 +324,7 @@ const handleGenerateSummary = () => {
               </button>
               <button
                 onClick={() => removeSkill(index)}
-                className="px-3 py-1 bg-red-500 text-white rounded"
+                className="px-3 py-1 bg-gray-600 text-white rounded"
               >
                 Remove
               </button>
@@ -358,7 +332,7 @@ const handleGenerateSummary = () => {
           ))}
           <button
             onClick={addSkill}
-            className="mt-2 px-4 py-2 bg-indigo-500 text-white rounded"
+            className="mt-2 px-4 py-2 bg-gray-600 text-white rounded"
           >
             + Add Skill
           </button>
@@ -367,7 +341,7 @@ const handleGenerateSummary = () => {
         </div> {/* ✅ Left column closes here */}
 
         {/* Right side: Resume Preview */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-gradient-to-r from-gray-500 to-teal-100 rounded-lg shadow-lg p-6">
           <h1 className="text-3xl font-bold text-indigo-600 mb-2">
             {personalInfo.name}
           </h1>
@@ -416,7 +390,7 @@ const handleGenerateSummary = () => {
           <h2 className="text-xl font-bold text-indigo-500 mb-2">Skills</h2>
           <div className="grid grid-cols-2 gap-2 text-gray-700">
             {skills.map((skill, index) => (
-              <div key={index} className="bg-gray-100 px-3 py-1 rounded">
+              <div key={index} className="font-bold">
                 {skill}
               </div>
             ))}
@@ -425,7 +399,7 @@ const handleGenerateSummary = () => {
           {/* Print / Export */}
             <button
               onClick={() => window.print()}
-              className="mt-6 px-4 py-2 bg-primary text-primary-foreground rounded"
+              className="mt-6 px-4 py-2 bg-indigo-500 text-white rounded font-serif"
             >
               Print / Save as PDF
             </button>

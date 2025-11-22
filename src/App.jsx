@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ResumePreview from "./ResumePreview"; // ✅ import the preview component
 
 function App() {
   const [personalInfo, setPersonalInfo] = useState({
@@ -11,6 +12,7 @@ function App() {
   const [education, setEducation] = useState([
     { school: "", degree: "", year: "" }
   ]);
+  
 
   const [experience, setExperience] = useState([
     { company: "", role: "", start: "", end: "", details: "" }
@@ -23,10 +25,10 @@ function App() {
 
   const [summary, setSummary] = useState("");
 
-  {/* AI integration*/}
+  const [certificates, setCertificates] = useState([{ title: "", year: "" }]);
+
+  // AI integration
   const [summaryLoading, setSummaryLoading] = useState(false);
-
-
 
   // Add / Remove Education
   const addEducation = () => {
@@ -54,25 +56,24 @@ function App() {
   };
 
   const removeSkill = (index) => {
-  const newSkills = [...skills];
-  newSkills.splice(index, 1);
-  setSkills(newSkills);
-};
+    const newSkills = [...skills];
+    newSkills.splice(index, 1);
+    setSkills(newSkills);
+  };
 
   const moveSkillUp = (index) => {
-  if (index === 0) return; // already at the top
-  const newSkills = [...skills];
-  [newSkills[index - 1], newSkills[index]] = [newSkills[index], newSkills[index - 1]];
-  setSkills(newSkills);
-};
+    if (index === 0) return;
+    const newSkills = [...skills];
+    [newSkills[index - 1], newSkills[index]] = [newSkills[index], newSkills[index - 1]];
+    setSkills(newSkills);
+  };
 
-const moveSkillDown = (index) => {
-  if (index === skills.length - 1) return; // already at the bottom
-  const newSkills = [...skills];
-  [newSkills[index + 1], newSkills[index]] = [newSkills[index], newSkills[index + 1]];
-  setSkills(newSkills);
-};
-
+  const moveSkillDown = (index) => {
+    if (index === skills.length - 1) return;
+    const newSkills = [...skills];
+    [newSkills[index + 1], newSkills[index]] = [newSkills[index], newSkills[index + 1]];
+    setSkills(newSkills);
+  };
 
   // Handlers for updating
   const handleEducationChange = (index, field, value) => {
@@ -87,41 +88,29 @@ const moveSkillDown = (index) => {
     setExperience(newExperience);
   };
 
-const handleSkillChange = (index, value) => {
-  const newSkills = [...skills];
-  newSkills[index] = value;
-  setSkills(newSkills);
-};
+  const handleSkillChange = (index, value) => {
+    const newSkills = [...skills];
+    newSkills[index] = value;
+    setSkills(newSkills);
+  };
 
-{/*AI section*/}
-const generateSummaryAI = async () => {
-  try {
-    const res = await fetch("http://localhost:5000/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        prompt: `Write a confident resume summary for a ${experience[0].role} skilled in ${skills.join(", ")}`
-      }),
-    });
+  // AI section
+  const generateSummaryAI = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: `Write a confident resume summary for a ${experience[0].role} skilled in ${skills.join(", ")}`
+        }),
+      });
 
-    const data = await res.json();
-    setSummary(data.text); // update the summary state
-  } catch (err) {
-    console.error("Error calling AI:", err);
-  }
-};
-
-
-const handleGenerateSummary = () => {
-  setSummaryLoading(true);
-  // Simulate generation; replace this with a real API call later
-  const draft = generateSummaryDraft(personalInfo, experience, skills);
-  setSummary(draft);
-  setSummaryLoading(false);{/*End of the AI handlers */}
-};
-
-
-
+      const data = await res.json();
+      setSummary(data.text);
+    } catch (err) {
+      console.error("Error calling AI:", err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-gray-500 to-teal-100 flex items-center justify-center p-6 font-serif">
@@ -185,11 +174,6 @@ const handleGenerateSummary = () => {
             </button>
           </div>
 
-
-
-
-
-
           {/* Education Section */}
           <h2 className="text-xl font-bold mt-6">Education</h2>
           {education.map((edu, index) => (
@@ -235,6 +219,52 @@ const handleGenerateSummary = () => {
           >
             + Add Education
           </button>
+
+          {/* Certificates Section */}    
+          <h2 className="text-xl font-bold mt-6">Certificates</h2>
+          {certificates.map((cert, index) => (
+            <div key={index} className="space-y-2 border p-3 rounded mb-3">
+              <input
+                type="text"
+                placeholder="Certificate Title"
+                value={cert.title}
+                onChange={(e) => {
+                  const newCerts = [...certificates];
+                  newCerts[index].title = e.target.value;
+                  setCertificates(newCerts);
+                }}
+                className="w-full border p-2 rounded"
+              />
+              <input
+                type="text"
+                placeholder="Year"
+                value={cert.year}
+                onChange={(e) => {
+                  const newCerts = [...certificates];
+                  newCerts[index].year = e.target.value;
+                  setCertificates(newCerts);
+                }}
+                className="w-full border p-2 rounded"
+              />
+              <button
+                onClick={() => {
+                  const newCerts = [...certificates];
+                  newCerts.splice(index, 1);
+                  setCertificates(newCerts);
+                }}
+                className="mt-2 px-3 py-1 bg-gray-600 text-white rounded"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={() => setCertificates([...certificates, { title: "", year: "" }])}
+            className="mt-2 px-4 py-2 bg-gray-600 text-white rounded"
+          >
+            + Add Certificate
+          </button>
+        
 
           {/* Work Experience Section */}
           <h2 className="text-xl font-bold mt-6">Work Experience</h2>
@@ -336,81 +366,26 @@ const handleGenerateSummary = () => {
           >
             + Add Skill
           </button>
-
-
         </div> {/* ✅ Left column closes here */}
 
         {/* Right side: Resume Preview */}
-        <div className="bg-gradient-to-r from-gray-500 to-teal-100 rounded-lg shadow-lg p-6">
-          <h1 className="text-3xl font-bold text-indigo-600 mb-2">
-            {personalInfo.name}
-          </h1>
-          <p className="text-gray-700">{personalInfo.email}</p>
-          <p className="text-gray-700">{personalInfo.phone}</p>
-          <p className="text-gray-700">{personalInfo.address}</p>
+<div className="bg-gradient-to-r from-gray-500 to-teal-100 rounded-lg shadow-lg p-6">
+  <ResumePreview
+    personalInfo={personalInfo}
+    education={education}
+    experience={experience}
+    skills={skills}
+    summary={summary}
+    certificates={certificates}
+  />
+</div>
+ {/* ✅ Right column closes here */}
 
-          {/* Divider */}
-          {/* Summary Section */}
-          {summary && (
-            <>
-              <hr className="my-4 border-gray-300" />
-              <h2 className="text-xl font-bold text-indigo-500 mb-2">Summary</h2>
-              <p className="text-gray-700">{summary}</p>
-            </>
-          )}
-
-
-          {/* Divider */}
-          <hr className="my-4 border-gray-300" />
-
-          <h2 className="text-xl font-bold text-indigo-500 mb-2">Education</h2>
-          {education.map((edu, index) => (
-            <div key={index} className="mb-3">
-              <p className="font-semibold">{edu.school}</p>
-              <p className="text-gray-600">{edu.degree} ({edu.year})</p>
-            </div>
-          ))}
-
-          {/* Divider */}
-          <hr className="my-4 border-gray-300" />
-
-          <h2 className="text-xl font-bold text-indigo-500 mb-2">Work Experience</h2>
-          {experience.map((exp, index) => (
-            <div key={index} className="mb-3">
-              <p className="font-semibold">{exp.company} – {exp.role}</p>
-              <p className="text-gray-600">{exp.start} - {exp.end}</p>
-              <p className="text-gray-700">{exp.details}</p>
-            </div>
-          ))}
-
-          {/*Divider */}
-          {/* Skills Section */}
-          <hr className="my-4 border-gray-300" />
-
-          <h2 className="text-xl font-bold text-indigo-500 mb-2">Skills</h2>
-          <div className="grid grid-cols-2 gap-2 text-gray-700">
-            {skills.map((skill, index) => (
-              <div key={index} className="font-bold">
-                {skill}
-              </div>
-            ))}
-          </div>
-
-          {/* Print / Export */}
-            <button
-              onClick={() => window.print()}
-              className="mt-6 px-4 py-2 bg-indigo-500 text-white rounded font-serif"
-            >
-              Print / Save as PDF
-            </button>
-
-        </div> {/* ✅ Right column closes here */}
+        
 
       </div>
     </div>
   );
 }
-
-
 
 export default App;

@@ -1,154 +1,164 @@
 import React from "react";
 import html2pdf from "html2pdf.js";
-import { Document, Packer, Paragraph, TextRun } from "docx";
 import { saveAs } from "file-saver";
+import ReactDOMServer from "react-dom/server";
+import ExportLayout from "./ExportLayout";
+import { DndContext, useSensor, useSensors, PointerSensor } from "@dnd-kit/core";
 
-function ResumePreview({ personalInfo, education, experience, skills, summary, certificates }) {
+function ResumePreview({
+  personalInfo,
+  education,
+  experience,
+  skills,
+  summary,
+  certificates,
+  template,
+  sectionOrder,
+  setSectionOrder,
+}) {
+  // PDF Export
   const handleDownloadPDF = () => {
-    const element = document.getElementById("resume-preview");
-    const options = {
+    const exportHTML = ReactDOMServer.renderToString(
+      <ExportLayout
+        personalInfo={personalInfo}
+        education={education}
+        experience={experience}
+        skills={skills}
+        summary={summary}
+        certificates={certificates}
+      />
+    );
+
+    const opt = {
       margin: 0.5,
       filename: "resume.pdf",
-      image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2 },
-      jsPDF: { unit: "in", format: "letter", orientation: "portrait" }
+      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
     };
-    html2pdf().set(options).from(element).save();
+
+    html2pdf().set(opt).from(exportHTML).save();
   };
 
-  const handleDownloadDocx = async () => {
-    const doc = new Document({
-      sections: [
-        {
-          children: [
-            new Paragraph({ children: [new TextRun({ text: "Resume", bold: true, size: 28 })] }),
-            new Paragraph(`Name: ${personalInfo?.name}`),
-            new Paragraph(`Email: ${personalInfo?.email}`),
-            new Paragraph(`Phone: ${personalInfo?.phone}`),
-            new Paragraph(`Address: ${personalInfo?.address}`),
-            new Paragraph({ children: [new TextRun({ text: "Summary", bold: true })] }),
-            new Paragraph(summary || ""),
-            new Paragraph({ children: [new TextRun({ text: "Education", bold: true })] }),
-            ...(education || []).map(
-              (edu) => new Paragraph(`${edu.school} — ${edu.degree} (${edu.year})`)
-            ),
-            new Paragraph({ children: [new TextRun({ text: "Experience", bold: true })] }),
-            ...(experience || []).map(
-              (job) => new Paragraph(`${job.role} — ${job.company} (${job.start} - ${job.end})\n${job.details}`)
-            ),
-            new Paragraph({ children: [new TextRun({ text: "Skills", bold: true })] }),
-            ...(skills || []).map((skill) => new Paragraph(skill)),
-            new Paragraph({ children: [new TextRun({ text: "Certificates", bold: true })] }),
-            ...(certificates || []).map(
-              (cert) => new Paragraph(`${cert.title} (${cert.year})`)
-            ),
-          ],
-        },
-      ],
-    });
+  // JSON Export
+  const handleDownloadJSON = () => {
+    const data = { personalInfo, education, experience, skills, summary, certificates };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "resume.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
-    const blob = await Packer.toBlob(doc);
-    saveAs(blob, "resume.docx");
+  // Template styles
+  const templateClasses = {
+    classic: "font-serif text-gray-900 leading-relaxed",
+    modern: "font-sans text-gray-800 leading-relaxed bg-gray-50",
+    minimalist: "font-light text-black leading-relaxed tracking-wide",
+  };
+
+  // Drag-and-drop setup
+  const sensors = useSensors(useSensor(PointerSensor));
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over) return;
+    if (active.id !== over.id) {
+      const oldIndex = sectionOrder.indexOf(active.id);
+      const newIndex = sectionOrder.indexOf(over.id);
+      const newOrder = [...sectionOrder];
+      newOrder.splice(oldIndex, 1);
+      newOrder.splice(newIndex, 0, active.id);
+      setSectionOrder(newOrder);
+    }
   };
 
   return (
     <div className="bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200">
-      {/* Gradient header with buttons */}
-      <div className="bg-gradient-to-r from-indigo-500 to-blue-600 px-6 py-4 flex justify-between items-center">
+      {/* Header with buttons */}
+      <div className="bg-gradient-to-r from-indigo-500 to-blue-600 px-6 py-4 flex flex-wrap justify-between items-center">
         <h2 className="text-2xl font-bold text-white tracking-wide">Resume Preview</h2>
-        <div className="space-x-2">
-          <button
-            onClick={() => window.print()}
-            className="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-800"
-          >
-            Print
-          </button>
+        <div className="space-x-2 mt-2 md:mt-0">
           <button
             onClick={handleDownloadPDF}
-            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors duration-200"
           >
             Download PDF
           </button>
           <button
-            onClick={handleDownloadDocx}
-            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+            onClick={() => window.print()}
+            className="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-800 transition-colors duration-200"
           >
-            Download DOCX
+            Print
+          </button>
+          <button
+            onClick={handleDownloadJSON}
+            className="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors duration-200"
+          >
+            Download JSON
           </button>
         </div>
       </div>
+          {/* Resume content */}
+      <div id="resume-preview" className={`p-6 md:p-10 ${templateClasses[template]} overflow-x-auto`}>
+        <h1 className="text-3xl font-bold text-center mb-6">{personalInfo?.name}</h1>
+        <p className="text-center mb-2">{personalInfo?.email} | {personalInfo?.phone}</p>
+        <p className="text-center mb-6">{personalInfo?.address}</p>
 
-      {/* Resume content */}
-      <div id="resume-preview" className="p-6 space-y-6 text-gray-800 divide-y divide-gray-200">
-        {/* Contact Info */}
-        <div>
-          <h3 className="text-lg font-semibold text-indigo-600 mb-2">Contact Information</h3>
-          <p>Name: {personalInfo?.name}</p>
-          <p>Email: {personalInfo?.email}</p>
-          <p>Phone: {personalInfo?.phone}</p>
-          <p>Address: {personalInfo?.address}</p>
-        </div>
-
-        {/* Summary */}
-        {summary && (
-          <div>
-            <h3 className="text-lg font-semibold text-indigo-600 mb-2">Professional Summary</h3>
-            <p>{summary}</p>
-          </div>
-        )}
-
-        {/* Education */}
-        {education && education.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold text-indigo-600 mb-2">Education</h3>
-            {education.map((edu, index) => (
-              <div key={index} className="mb-3">
-                <p className="font-semibold">{edu.school} — {edu.degree}</p>
-                <p className="text-gray-600">{edu.year}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Experience */}
-        {experience && experience.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold text-indigo-600 mb-2">Work Experience</h3>
-            {experience.map((job, index) => (
-              <div key={index} className="mb-4">
-                <p className="font-semibold">{job.role} — {job.company}</p>
-                <p className="text-sm text-gray-600">{job.start} - {job.end}</p>
-                <p>{job.details}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Skills */}
-        {skills && skills.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold text-indigo-600 mb-2">Skills</h3>
-            <ul className="list-disc list-inside">
-              {skills.map((skill, index) => (
-                <li key={index}>{skill}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Certificates */}
-        {certificates && certificates.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold text-indigo-600 mb-2">Certificates</h3>
-            <ul className="list-disc list-inside">
-              {certificates.map((cert, index) => (
-                <li key={index}>{cert.title} ({cert.year})</li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+          {sectionOrder.map((section) => (
+            <div key={section} id={section} className="mb-6 border p-2 cursor-move rounded">
+              {section === "summary" && summary && (
+                <section>
+                  <h2 className="text-xl font-semibold border-b pb-1 mb-2">Summary</h2>
+                  <p>{summary}</p>
+                </section>
+              )}
+              {section === "education" && education?.length > 0 && (
+                <section>
+                  <h2 className="text-xl font-semibold border-b pb-1 mb-2">Education</h2>
+                  {education.map((edu, i) => (
+                    <div key={i}>
+                      <p className="font-semibold">{edu.school} — {edu.degree}</p>
+                      <p className="text-gray-600">{edu.year}</p>
+                    </div>
+                  ))}
+                </section>
+              )}
+              {section === "experience" && experience?.length > 0 && (
+                <section>
+                  <h2 className="text-xl font-semibold border-b pb-1 mb-2">Experience</h2>
+                  {experience.map((job, i) => (
+                    <div key={i}>
+                      <p className="font-semibold">{job.role} — {job.company}</p>
+                      <p className="text-sm text-gray-600">{job.start} - {job.end}</p>
+                      <p>{job.details}</p>
+                    </div>
+                  ))}
+                </section>
+              )}
+              {section === "skills" && skills?.length > 0 && (
+                <section>
+                  <h2 className="text-xl font-semibold border-b pb-1 mb-2">Skills</h2>
+                  <ul className="list-disc list-inside">
+                    {skills.map((skill, i) => <li key={i}>{skill}</li>)}
+                  </ul>
+                </section>
+              )}
+              {section === "certificates" && certificates?.length > 0 && (
+                <section>
+                  <h2 className="text-xl font-semibold border-b pb-1 mb-2">Certificates</h2>
+                  <ul className="list-disc list-inside">
+                    {certificates.map((cert, i) => (
+                      <li key={i}>{cert.title} ({cert.year})</li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+            </div>
+          ))}
+        </DndContext>
       </div>
-
     </div>
   );
 }

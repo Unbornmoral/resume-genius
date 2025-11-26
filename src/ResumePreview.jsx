@@ -74,7 +74,7 @@ function ResumePreview({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200">
+    <div className="bg-gradient-to-r from-blue-300 to-teal-600 rounded-xl shadow-2xl overflow-hidden border border-gray-200">
       {/* Header with buttons */}
       <div className="bg-gradient-to-r from-indigo-500 to-blue-600 px-6 py-4 flex flex-wrap justify-between items-center">
         <h2 className="text-2xl font-bold text-white tracking-wide">Resume Preview</h2>

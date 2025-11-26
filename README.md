@@ -1,3 +1,45 @@
+# Resume Genius
+
+Resume Genius is a modern, template‑driven resume builder built with React. Users can create professional resumes by filling in their details and choosing from beautifully designed templates exported from Canva. The app is simple, stable, and deployable on Vercel.
+
+---
+
+## ✨ Features
+- Multiple resume templates (designed in Canva, imported into the app)
+- Clean, responsive UI built with React + TailwindCSS
+- Manual input for personal info, experience, and skills
+- Easy deployment on Vercel
+- Backend (Express) optional — originally used for AI text generation, now simplified
+
+---
+
+## 📂 Project Structure
+resume-genius/ ├── backend/ # Express server (optional, AI route removed) ├── public/ # Static assets (Canva templates, images) ├── src/ # React components and pages ├── package.json # Frontend dependencies └── README.md
+
+
+---
+
+## 🛠️ Getting Started
+
+### Prerequisites
+- Node.js (>= 18)
+- npm or yarn
+
+### Installation
+```bash
+git clone https://github.com/yourusername/resume-genius.git
+cd resume-genius
+npm install
+
+npm start
+
+npm run build
+
+Deploy easily to Vercel:
+bash
+vercel --prod
+
+
 MVP Features and User Stories
 Here is a beautifully crafted, creative draft list of MVP features and user stories you can include in your how to use.md file to make your resume creator truly stand out:
 

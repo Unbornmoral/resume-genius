@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ResumePreview from "./ResumePreview";
+import Footer from "./components/Footer";
 
 function App() {
   // State
@@ -374,6 +375,7 @@ function App() {
             sectionOrder={formOrder}
             setSectionOrder={setFormOrder}
           />
+          <Footer/>
         </div>
       </div>
     </div>
